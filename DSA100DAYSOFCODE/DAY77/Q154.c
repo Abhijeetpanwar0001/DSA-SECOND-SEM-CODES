@@ -17,7 +17,7 @@ void dfs(int u, int parent, int** graph, int* graphSize,
         if (!visited[v]) {
             dfs(v, u, graph, graphSize, disc, low, visited, result, colSizes, idx);
 
-            low[u] = (low[u] < low[v]) ? low[u] : low[v];
+            if (low[v] < low[u]) low[u] = low[v];
 
             if (low[v] > disc[u]) {
                 result[*idx] = (int*)malloc(2 * sizeof(int));
@@ -27,7 +27,7 @@ void dfs(int u, int parent, int** graph, int* graphSize,
                 (*idx)++;
             }
         } else {
-            low[u] = (low[u] < disc[v]) ? low[u] : disc[v];
+            if (disc[v] < low[u]) low[u] = disc[v];
         }
     }
 }
@@ -36,15 +36,23 @@ int** criticalConnections(int n, int** connections, int connectionsSize,
                           int* connectionsColSize, int* returnSize,
                           int** returnColumnSizes) {
 
+    int* degree = (int*)calloc(n, sizeof(int));
+
+    // Step 1: Count degree
+    for (int i = 0; i < connectionsSize; i++) {
+        degree[connections[i][0]]++;
+        degree[connections[i][1]]++;
+    }
+
+    // Step 2: Allocate exact memory
     int** graph = (int**)malloc(n * sizeof(int*));
     int* graphSize = (int*)calloc(n, sizeof(int));
 
-    // Allocate enough space safely
     for (int i = 0; i < n; i++) {
-        graph[i] = (int*)malloc(connectionsSize * sizeof(int));
+        graph[i] = (int*)malloc(degree[i] * sizeof(int));
     }
 
-    // Build graph
+    // Step 3: Fill graph
     for (int i = 0; i < connectionsSize; i++) {
         int u = connections[i][0];
         int v = connections[i][1];
@@ -53,6 +61,7 @@ int** criticalConnections(int n, int** connections, int connectionsSize,
         graph[v][graphSize[v]++] = u;
     }
 
+    // Step 4: Tarjan setup
     int* disc = (int*)malloc(n * sizeof(int));
     int* low = (int*)malloc(n * sizeof(int));
     int* visited = (int*)calloc(n, sizeof(int));
@@ -70,3 +79,6 @@ int** criticalConnections(int n, int** connections, int connectionsSize,
 
     return result;
 }
+        
+    
+    
